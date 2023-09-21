@@ -26,11 +26,17 @@ func CreateShortUrl(c *gin.Context) {
 		LongUrl:  shortenUrlRequest.LongUrl,
 		ShortUrl: shortUrl,
 	}
-	c.JSON(http.StatusOK, gin.H{"shortUrl": shortUrl})
+	host := "http://localhost:8080/"
+	urlWithHostName := host + shortUrl
+	//TODO: HotName can be configurable
+
+	c.JSON(http.StatusOK, gin.H{"shortUrl": urlWithHostName})
 	return
 }
 func RedirectToLongUrl(c *gin.Context) {
-	urlInfo := db[c.Param("shortUrl")]
+	sUrl := c.Param("shortUrl")
+	fmt.Println("Found ", sUrl)
+	urlInfo := db[sUrl]
 	fmt.Println("Redirecting to ", urlInfo.LongUrl)
 	location := url.URL{Path: urlInfo.LongUrl}
 	c.Redirect(http.StatusFound, location.RequestURI())
@@ -40,9 +46,7 @@ func getShortUrl(req *models.ShortenUrlRequest) string {
 
 	len := 6
 	//TODO: Length can be configurable
-	host := "http://localhost:8080/"
-	//TODO: HotName can be configurable
-	sUrl := host + hash[:len]
+	sUrl := hash[:len]
 	if isExist(sUrl) {
 		//TODO: re-calculate hash with a salt and return the sUrl
 	}
