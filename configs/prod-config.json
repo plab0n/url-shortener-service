@@ -1,0 +1,9 @@
+{
+    "shortUrlLength": 6,
+    "host": "http://localhost:8080/",
+    "httpPort": ":8080",
+    "db" : {
+      "connectionString": "host=postgres port=5432 user=postgres password=ac1d1tavut3rb4cch4 dbname=url_shortener",
+      "maxConnection": 5
+    }
+  }
