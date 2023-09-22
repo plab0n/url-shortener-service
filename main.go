@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"url-shortener-service/api"
 	"url-shortener-service/db"
 
@@ -12,7 +13,13 @@ import (
 
 func main() {
 	viper.AddConfigPath("./configs")
-	viper.SetConfigName("config")
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "dev"
+	}
+	fmt.Println("Environment : ", env)
+	configName := env + "-config"
+	viper.SetConfigName(configName)
 	viper.SetConfigType("json")
 	err := viper.ReadInConfig()
 	if err != nil {
