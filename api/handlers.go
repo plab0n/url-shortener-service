@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"url-shortener-service/db"
 	"url-shortener-service/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
-
-var db = make(map[string]models.UrlInfo)
 
 func CreateShortUrl(c *gin.Context) {
 	var shortenUrlRequest models.ShortenUrlRequest
@@ -21,22 +21,24 @@ func CreateShortUrl(c *gin.Context) {
 		return
 	}
 	shortUrl := getShortUrl(&shortenUrlRequest)
-	//TODO save in db
-	db[shortUrl] = models.UrlInfo{
+	//TODO: handle exception
+	tx := db.Insert(&models.UrlInfo{
 		LongUrl:  shortenUrlRequest.LongUrl,
 		ShortUrl: shortUrl,
+	})
+	if tx.Error != nil {
+		fmt.Println("Data Insert failed ", tx.Error)
 	}
-	host := "http://localhost:8080/"
+	host := viper.GetString("host")
 	urlWithHostName := host + shortUrl
-	//TODO: HotName can be configurable
-
 	c.JSON(http.StatusOK, gin.H{"shortUrl": urlWithHostName})
 	return
 }
 func RedirectToLongUrl(c *gin.Context) {
 	sUrl := c.Param("shortUrl")
 	fmt.Println("Found ", sUrl)
-	urlInfo := db[sUrl]
+	var urlInfo models.UrlInfo
+	db.GetItemByValue("short_url", sUrl).First(&urlInfo)
 	fmt.Println("Redirecting to ", urlInfo.LongUrl)
 	location := url.URL{Path: urlInfo.LongUrl}
 	c.Redirect(http.StatusFound, location.RequestURI())
@@ -44,8 +46,7 @@ func RedirectToLongUrl(c *gin.Context) {
 func getShortUrl(req *models.ShortenUrlRequest) string {
 	hash := calculateSha256(req.LongUrl)
 
-	len := 6
-	//TODO: Length can be configurable
+	len := viper.GetInt("shortUrlLength")
 	sUrl := hash[:len]
 	if isExist(sUrl) {
 		//TODO: re-calculate hash with a salt and return the sUrl

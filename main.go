@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"url-shortener-service/api"
+	"url-shortener-service/db"
+
+	"github.com/spf13/viper"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,6 +18,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	db.NewGormDb()
 	r := gin.Default()
 	api.SetupRoutes(r)
 	// Listen and Server in 0.0.0.0:8080
