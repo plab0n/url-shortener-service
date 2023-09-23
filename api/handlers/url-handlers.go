@@ -51,6 +51,42 @@ func RedirectToLongUrl(c *gin.Context) {
 	location := url.URL{Path: urlInfo.LongUrl}
 	c.Redirect(http.StatusFound, location.RequestURI())
 }
+func DeleteUrlHandler(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied!"})
+		return
+	}
+	claims, err := utils.ParseToken(token)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Access denied!"})
+		return
+	}
+	var req models.DeleteUrlRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	filters := make(map[string]interface{})
+	filters["created_by"] = claims.Subject
+	filters["short_url"] = req.ShortUrl
+	queryParams := &models.QueryParams{
+		Table:   "url_infos",
+		Filters: filters,
+	}
+	tx := db.GetRecordByQuery(queryParams)
+
+	if tx.Error != nil {
+
+	}
+	var urlInfo models.UrlInfo
+	tx.First(&urlInfo)
+	fmt.Println("Found url: ", urlInfo.ShortUrl)
+	tx = db.Delete(&urlInfo)
+	if tx.Error != nil {
+
+	}
+	c.JSON(http.StatusOK, gin.H{"response": "Deleted successfully"})
+}
 func getShortUrl(req *models.ShortenUrlRequest) string {
 	hash := calculateSha256(req.LongUrl)
 

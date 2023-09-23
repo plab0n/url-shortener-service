@@ -39,3 +39,18 @@ func ParseToken(tokenString string) (claims *models.Claims, err error) {
 
 	return claims, nil
 }
+func GenerateQuery(params *models.QueryParams) string {
+	var queryBuilder strings.Builder
+	if len(params.Filters) > 0 {
+		filterCount := 0
+		for key, value := range params.Filters {
+			if filterCount > 0 {
+				queryBuilder.WriteString(" AND ")
+			}
+			queryBuilder.WriteString(fmt.Sprintf("%s = '%v'", key, value))
+			filterCount++
+		}
+	}
+
+	return queryBuilder.String()
+}

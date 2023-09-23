@@ -8,6 +8,7 @@ import (
 
 func SetupRoutes(router *gin.Engine) {
 	router.POST("/api/v1/data/shorten", handlers.CreateShortUrl)
+	router.DELETE("/api/v1/data", handlers.DeleteUrlHandler)
 	router.GET(":shortUrl", handlers.RedirectToLongUrl)
 
 	router.POST("/api/v1/auth/register", handlers.RegisterHandler)
