@@ -10,7 +10,7 @@ CREATE TABLE url_infos (
     updated_at TIMESTAMP DEFAULT NULL
 );
 
-CREATE TABLE user_info (
+CREATE TABLE user_infos (
     id SERIAL PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,

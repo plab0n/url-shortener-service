@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"url-shortener-service/db"
 	"url-shortener-service/models"
+	"url-shortener-service/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -21,11 +22,18 @@ func CreateShortUrl(c *gin.Context) {
 		return
 	}
 	shortUrl := getShortUrl(&shortenUrlRequest)
+	token := c.GetHeader("Authorization")
+	claims, err := utils.ParseToken(token)
+
 	//TODO: handle exception
-	tx := db.Insert(&models.UrlInfo{
+	urlInfo := &models.UrlInfo{
 		LongUrl:  shortenUrlRequest.LongUrl,
 		ShortUrl: shortUrl,
-	})
+	}
+	if err == nil {
+		urlInfo.CreatedBy = claims.Subject
+	}
+	tx := db.Insert(urlInfo)
 	if tx.Error != nil {
 		fmt.Println("Data Insert failed ", tx.Error)
 	}
