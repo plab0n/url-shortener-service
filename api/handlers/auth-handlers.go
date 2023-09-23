@@ -54,7 +54,7 @@ func TokenHandler(c *gin.Context) {
 			return
 		}
 
-		expirationTime := time.Now().Add(5 * time.Minute)
+		expirationTime := time.Now().Add(60 * time.Minute)
 
 		claims := &models.Claims{
 			StandardClaims: jwt.StandardClaims{
