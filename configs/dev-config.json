@@ -3,7 +3,7 @@
   "host": "http://localhost:8080/",
   "httpPort": ":8080",
   "db" : {
-    "connectionString": "host=localhost port=5432 user=postgres password=ac1d1tavut3rb4cch4 dbname=url-shortener",
+    "connectionString": "host=localhost port=5432 user=postgres password=ac1d1tavut3rb4cch4 dbname=url_shortener",
     "maxConnection": 5
   },
   "jwtKey": "m4ng3rp89adh"
