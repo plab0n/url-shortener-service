@@ -38,3 +38,6 @@ func Insert(model interface{}) (tx *gorm.DB) {
 func GetItemByValue(field string, value string) (tx *gorm.DB) {
 	return db.Where(field+" = ?", value)
 }
+func GetRecordByValue(table string, field string, value string) (tx *gorm.DB) {
+	return db.Table(table).Where(field+" = ?", value)
+}
