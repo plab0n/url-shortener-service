@@ -11,6 +11,6 @@ func SetupRoutes(router *gin.Engine) {
 	router.GET(":shortUrl", handlers.RedirectToLongUrl)
 
 	router.POST("/api/v1/auth/register", handlers.RegisterHandler)
-
+	router.GET("/api/v1/auth/token", handlers.TokenHandler)
 	//router.POST("/api/v1/auth/login", h)
 }

@@ -3,11 +3,14 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"time"
 	"url-shortener-service/db"
 	"url-shortener-service/models"
 	"url-shortener-service/utils"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 func RegisterHandler(c *gin.Context) {
@@ -18,7 +21,7 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	userModel := getUserModel(userRequest)
+	userModel := getUserModel(userRequest.Email)
 	if userModel != nil {
 		c.JSON(http.StatusOK, gin.H{"response": "User already registered. Please login."})
 		return
@@ -32,7 +35,46 @@ func RegisterHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"response": "User registered successfully"})
 }
+func TokenHandler(c *gin.Context) {
+	{
+		email := c.Query("email")
+		pass := c.Query("password")
+		fmt.Println(email)
+		fmt.Println(pass)
+		user := getUserModel(email)
+		if user == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found. Please register."})
+			return
+		}
 
+		errHash := utils.CompareHashPassword(pass, user.Password)
+
+		if !errHash {
+			c.JSON(400, gin.H{"error": "invalid password"})
+			return
+		}
+
+		expirationTime := time.Now().Add(5 * time.Minute)
+
+		claims := &models.Claims{
+			StandardClaims: jwt.StandardClaims{
+				Subject:   user.Email,
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		jwtKey := viper.GetString("jwtKey")
+		tokenString, err := token.SignedString([]byte(jwtKey))
+
+		if err != nil {
+			fmt.Println(err.Error())
+			c.JSON(500, gin.H{"error": "could not generate token"})
+			return
+		}
+		c.JSON(200, gin.H{"Token": tokenString})
+	}
+}
 func createUserModel(userModel *models.UserInfo, userRequest *models.RegisterUserRequest) *models.UserInfo {
 	passwordHash, err := utils.GenerateHashPassword(userRequest.Password)
 	if err != nil {
@@ -45,8 +87,8 @@ func createUserModel(userModel *models.UserInfo, userRequest *models.RegisterUse
 	return userModel
 }
 
-func getUserModel(user models.RegisterUserRequest) *models.UserInfo {
-	getUserTrx := db.GetRecordByValue("user_infos", "email", user.Email)
+func getUserModel(email string) *models.UserInfo {
+	getUserTrx := db.GetRecordByValue("user_infos", "email", email)
 	var userModel *models.UserInfo
 	if getUserTrx.Error == nil {
 		tx := getUserTrx.First(&userModel)
