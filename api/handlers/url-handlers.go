@@ -11,7 +11,9 @@ import (
 	"url-shortener-service/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
+	"gorm.io/gorm"
 )
 
 func CreateShortUrl(c *gin.Context) {
@@ -93,7 +95,8 @@ func getShortUrl(req *models.ShortenUrlRequest) string {
 	len := viper.GetInt("shortUrlLength")
 	sUrl := hash[:len]
 	if isExist(sUrl) {
-		//TODO: re-calculate hash with a salt and return the sUrl
+		hash = calculateSha256(req.LongUrl + uuid.New().String())
+		sUrl = hash[:len]
 	}
 
 	return sUrl
@@ -108,6 +111,18 @@ func calculateSha256(input string) string {
 	return hashHex
 }
 func isExist(sUrl string) bool {
-	//TODO: check in db if sUrl exists
-	return false
+	filters := make(map[string]interface{})
+	filters["short_url"] = sUrl
+	queryParam := &models.QueryParams{
+		Table:   "url_infos",
+		Filters: filters,
+	}
+	tx := db.GetRecordByQuery(queryParam)
+	if tx.Error == gorm.ErrRecordNotFound {
+		fmt.Println("Record Not found")
+		return false
+	}
+	var urlInfo models.UrlInfo
+	tx.First(&urlInfo)
+	return &urlInfo != nil
 }
